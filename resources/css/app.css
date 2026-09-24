@@ -1,0 +1,79 @@
+@import 'tailwindcss';
+
+@source "../**/*.js";
+@source "../**/*.jsx";
+
+@theme {
+    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+        'Segoe UI Symbol', 'Noto Color Emoji';
+}
+
+:root {
+    color: #173b2a;
+    background: #f0fdf4;
+    font-family: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif;
+}
+
+body {
+    min-width: 320px;
+    min-height: 100vh;
+    margin: 0;
+    background:
+        radial-gradient(circle at 8% 0%, rgba(187, 247, 208, 0.7), transparent 30rem),
+        linear-gradient(135deg, #f0fdf4 0%, #ffffff 48%, #dcfce7 100%);
+    color: #173b2a;
+}
+
+button,
+input,
+select,
+textarea {
+    font: inherit;
+}
+
+/* Re-theme the existing utility classes without changing view behavior. */
+[class*="bg-slate-950"] {
+    background-color: rgba(240, 253, 244, 0.86) !important;
+}
+
+[class*="bg-slate-900"] {
+    background-color: rgba(255, 255, 255, 0.9) !important;
+}
+
+[class*="bg-slate-800"] {
+    background-color: rgba(220, 252, 231, 0.8) !important;
+}
+
+[class*="border-slate-"] {
+    border-color: rgba(22, 101, 52, 0.15) !important;
+}
+
+[class*="text-slate-100"],
+[class*="text-slate-200"],
+[class*="text-slate-300"],
+[class*="text-white"] {
+    color: #173b2a !important;
+}
+
+[class*="text-slate-400"],
+[class*="text-slate-500"] {
+    color: #527565 !important;
+}
+
+[class*="from-amber-"],
+[class*="from-orange-"],
+[class*="from-sky-"],
+[class*="from-blue-"],
+[class*="from-purple-"] {
+    background-image: linear-gradient(135deg, #22c55e, #15803d) !important;
+}
+
+[class*="shadow-xl"],
+[class*="shadow-2xl"] {
+    box-shadow: 0 18px 45px rgba(22, 101, 52, 0.1) !important;
+}
+
+::selection {
+    background: #86efac;
+    color: #14532d;
+}
