@@ -18,6 +18,9 @@ import {
 } from 'lucide-react';
 
 export default function KasirScanner({ soundEnabled, addToast }) {
+    const formatRupiah = (value) =>
+        new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 2 }).format(Number(value) || 0);
+
     const [barcode, setBarcode] = useState('');
     const [jenisScan, setJenisScan] = useState('keluar'); // 'keluar' atau 'masuk'
     const [qty, setQty] = useState(1);
@@ -439,6 +442,9 @@ export default function KasirScanner({ soundEnabled, addToast }) {
                                     {previewItem.keterangan && (
                                         <p className="text-xs text-slate-400 mt-1">{previewItem.keterangan}</p>
                                     )}
+                                    <p className="text-sm font-bold text-amber-400 mt-2">
+                                        Harga: {formatRupiah(previewItem.harga)}
+                                    </p>
                                 </div>
                                 <div className="text-right shrink-0">
                                     <span className="text-xs text-slate-400 block mb-0.5">Stok Saat Ini</span>

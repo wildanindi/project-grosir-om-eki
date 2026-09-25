@@ -19,6 +19,9 @@ import {
 } from 'lucide-react';
 
 export default function MasterBarang({ soundEnabled, addToast, setActiveTab }) {
+    const formatRupiah = (value) =>
+        new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 2 }).format(Number(value) || 0);
+
     const [barangs, setBarangs] = useState([]);
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState('');
@@ -36,6 +39,7 @@ export default function MasterBarang({ soundEnabled, addToast, setActiveTab }) {
     const [formData, setFormData] = useState({
         kode_barang: '',
         nama_barang: '',
+        harga: 0,
         stok_saat_ini: 0,
         keterangan: '',
     });
@@ -76,6 +80,7 @@ export default function MasterBarang({ soundEnabled, addToast, setActiveTab }) {
         setFormData({
             kode_barang: '',
             nama_barang: '',
+            harga: 0,
             stok_saat_ini: 0,
             keterangan: '',
         });
@@ -89,6 +94,7 @@ export default function MasterBarang({ soundEnabled, addToast, setActiveTab }) {
         setFormData({
             kode_barang: barang.kode_barang,
             nama_barang: barang.nama_barang,
+            harga: Number(barang.harga) || 0,
             stok_saat_ini: barang.stok_saat_ini,
             keterangan: barang.keterangan || '',
         });
@@ -115,7 +121,11 @@ export default function MasterBarang({ soundEnabled, addToast, setActiveTab }) {
         setFormErrors({});
 
         try {
-            const res = await api.post('/barangs', formData);
+            const res = await api.post('/barangs', {
+                ...formData,
+                harga: Number(formData.harga) || 0,
+                stok_saat_ini: Number(formData.stok_saat_ini) || 0,
+            });
             if (res.success) {
                 if (soundEnabled) playSuccessSound();
                 addToast(res.message, 'success');
@@ -143,7 +153,8 @@ export default function MasterBarang({ soundEnabled, addToast, setActiveTab }) {
         try {
             const res = await api.put(`/barangs/${encodeURIComponent(selectedBarang.kode_barang)}`, {
                 nama_barang: formData.nama_barang,
-                stok_saat_ini: formData.stok_saat_ini,
+                harga: Number(formData.harga) || 0,
+                stok_saat_ini: Number(formData.stok_saat_ini) || 0,
                 keterangan: formData.keterangan,
             });
             if (res.success) {
@@ -323,6 +334,7 @@ export default function MasterBarang({ soundEnabled, addToast, setActiveTab }) {
                             <tr>
                                 <th className="px-6 py-4">Kode Barcode</th>
                                 <th className="px-6 py-4">Nama Barang</th>
+                                <th className="px-6 py-4 text-right">Harga</th>
                                 <th className="px-6 py-4 text-center">Stok Saat Ini</th>
                                 <th className="px-6 py-4">Keterangan</th>
                                 <th className="px-6 py-4 text-right">Aksi</th>
@@ -331,14 +343,14 @@ export default function MasterBarang({ soundEnabled, addToast, setActiveTab }) {
                         <tbody className="divide-y divide-slate-800/60">
                             {loading ? (
                                 <tr>
-                                    <td colSpan="5" className="px-6 py-12 text-center text-slate-400">
+                                    <td colSpan="6" className="px-6 py-12 text-center text-slate-400">
                                         <RefreshCw className="w-6 h-6 animate-spin mx-auto mb-2 text-sky-400" />
                                         <span>Memuat daftar barang...</span>
                                     </td>
                                 </tr>
                             ) : barangs.length === 0 ? (
                                 <tr>
-                                    <td colSpan="5" className="px-6 py-12 text-center text-slate-500">
+                                    <td colSpan="6" className="px-6 py-12 text-center text-slate-500">
                                         <Package className="w-10 h-10 mx-auto mb-2 opacity-40" />
                                         <p className="font-semibold text-slate-400">Tidak ada data barang ditemukan</p>
                                         <p className="text-xs text-slate-500 mt-1">
@@ -369,6 +381,13 @@ export default function MasterBarang({ soundEnabled, addToast, setActiveTab }) {
                                             <div className="font-bold text-white text-base">
                                                 {item.nama_barang}
                                             </div>
+                                        </td>
+
+                                        {/* Harga */}
+                                        <td className="px-6 py-4 text-right">
+                                            <span className="font-mono font-bold text-amber-400">
+                                                {formatRupiah(item.harga)}
+                                            </span>
                                         </td>
 
                                         {/* Stok Status Badge */}
@@ -495,6 +514,25 @@ export default function MasterBarang({ soundEnabled, addToast, setActiveTab }) {
 
                     <div>
                         <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                            Harga Jual <span className="text-rose-400">*</span>
+                        </label>
+                        <input
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            value={formData.harga}
+                            onChange={(e) => setFormData({ ...formData, harga: e.target.value })}
+                            required
+                            placeholder="Contoh: 15000"
+                            className={`w-full bg-slate-950 border rounded-xl px-4 py-2.5 text-sm font-mono text-white focus:outline-none focus:border-sky-500 ${
+                                formErrors.harga ? 'border-rose-500' : 'border-slate-700'
+                            }`}
+                        />
+                        {formErrors.harga && <p className="text-xs text-rose-400 mt-1">{formErrors.harga[0]}</p>}
+                    </div>
+
+                    <div>
+                        <label className="block text-xs font-semibold text-slate-300 mb-1.5">
                             Stok Awal <span className="text-rose-400">*</span>
                         </label>
                         <input
@@ -571,6 +609,24 @@ export default function MasterBarang({ soundEnabled, addToast, setActiveTab }) {
                             required
                             className="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-sky-500"
                         />
+                    </div>
+
+                    <div>
+                        <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                            Harga Jual <span className="text-rose-400">*</span>
+                        </label>
+                        <input
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            value={formData.harga}
+                            onChange={(e) => setFormData({ ...formData, harga: e.target.value })}
+                            required
+                            className={`w-full bg-slate-950 border rounded-xl px-4 py-2.5 text-sm font-mono text-white focus:outline-none focus:border-sky-500 ${
+                                formErrors.harga ? 'border-rose-500' : 'border-slate-700'
+                            }`}
+                        />
+                        {formErrors.harga && <p className="text-xs text-rose-400 mt-1">{formErrors.harga[0]}</p>}
                     </div>
 
                     <div>

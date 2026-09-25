@@ -39,7 +39,7 @@ const positiveInteger = (value, fallback) => {
     return Number.isInteger(parsed) && parsed > 0 ? parsed : fallback;
 };
 
-const barangColumns = 'kode_barang, nama_barang, stok_saat_ini, keterangan, created_at, updated_at';
+const barangColumns = 'kode_barang, nama_barang, harga, stok_saat_ini, keterangan, created_at, updated_at';
 
 function buildBarangFilters(query) {
     const conditions = [];
@@ -67,6 +67,7 @@ function formatTransaction(row) {
         barang: barang_kode ? {
             kode_barang: barang_kode,
             nama_barang: barang_nama,
+            harga: barang_harga,
             stok_saat_ini: barang_stok,
             keterangan: barang_keterangan,
             created_at: barang_created_at,
@@ -77,7 +78,7 @@ function formatTransaction(row) {
 
 const transactionSelect = `
     t.id, t.kode_barang, t.jenis_scan, t.qty, t.tanggal_scan, t.created_at, t.updated_at,
-    b.kode_barang AS barang_kode, b.nama_barang AS barang_nama,
+    b.kode_barang AS barang_kode, b.nama_barang AS barang_nama, b.harga AS barang_harga,
     b.stok_saat_ini AS barang_stok, b.keterangan AS barang_keterangan,
     b.created_at AS barang_created_at, b.updated_at AS barang_updated_at
 `;
@@ -122,15 +123,16 @@ app.get('/api/barangs/lookup/:kode_barang', asyncRoute(async (req, res) => {
 }));
 
 app.post('/api/barangs', asyncRoute(async (req, res) => {
-    const { kode_barang, nama_barang, stok_saat_ini, keterangan = null } = req.body;
+    const { kode_barang, nama_barang, harga, stok_saat_ini, keterangan = null } = req.body;
     const errors = {};
     if (!kode_barang || typeof kode_barang !== 'string' || kode_barang.length > 50) errors.kode_barang = ['Kode barang wajib diisi dan maksimal 50 karakter.'];
     if (!nama_barang || typeof nama_barang !== 'string' || nama_barang.length > 100) errors.nama_barang = ['Nama barang wajib diisi dan maksimal 100 karakter.'];
+    if (!Number.isFinite(harga) || harga < 0) errors.harga = ['Harga harus berupa angka nol atau lebih.'];
     if (!Number.isInteger(stok_saat_ini)) errors.stok_saat_ini = ['Stok harus berupa bilangan bulat.'];
     if (Object.keys(errors).length) return sendValidationError(res, errors);
 
     try {
-        await pool.query('INSERT INTO barangs (kode_barang, nama_barang, stok_saat_ini, keterangan, created_at, updated_at) VALUES ($1, $2, $3, $4, NOW(), NOW())', [kode_barang, nama_barang, stok_saat_ini, keterangan]);
+        await pool.query('INSERT INTO barangs (kode_barang, nama_barang, harga, stok_saat_ini, keterangan, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, NOW(), NOW())', [kode_barang, nama_barang, harga, stok_saat_ini, keterangan]);
     } catch (error) {
         if (error.code === '23505') return sendValidationError(res.status(409), { kode_barang: ['Kode barang sudah digunakan.'] });
         throw error;
@@ -140,13 +142,14 @@ app.post('/api/barangs', asyncRoute(async (req, res) => {
 }));
 
 app.put('/api/barangs/:kode_barang', asyncRoute(async (req, res) => {
-    const { nama_barang, stok_saat_ini, keterangan = null } = req.body;
+    const { nama_barang, harga, stok_saat_ini, keterangan = null } = req.body;
     const errors = {};
     if (!nama_barang || typeof nama_barang !== 'string' || nama_barang.length > 100) errors.nama_barang = ['Nama barang wajib diisi dan maksimal 100 karakter.'];
+    if (!Number.isFinite(harga) || harga < 0) errors.harga = ['Harga harus berupa angka nol atau lebih.'];
     if (!Number.isInteger(stok_saat_ini)) errors.stok_saat_ini = ['Stok harus berupa bilangan bulat.'];
     if (Object.keys(errors).length) return sendValidationError(res, errors);
 
-    const result = await pool.query('UPDATE barangs SET nama_barang = $1, stok_saat_ini = $2, keterangan = $3, updated_at = NOW() WHERE kode_barang = $4', [nama_barang, stok_saat_ini, keterangan, req.params.kode_barang]);
+    const result = await pool.query('UPDATE barangs SET nama_barang = $1, harga = $2, stok_saat_ini = $3, keterangan = $4, updated_at = NOW() WHERE kode_barang = $5', [nama_barang, harga, stok_saat_ini, keterangan, req.params.kode_barang]);
     if (!result.rowCount) return res.status(404).json({ success: false, message: 'Barang tidak ditemukan.' });
     const rows = await queryRows(`SELECT ${barangColumns} FROM barangs WHERE kode_barang = $1`, [req.params.kode_barang]);
     res.json({ success: true, message: 'Data barang berhasil diperbarui.', data: rows[0] });
