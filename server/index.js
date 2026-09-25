@@ -61,7 +61,17 @@ function buildBarangFilters(query) {
 const queryRows = async (text, values = []) => (await pool.query(text, values)).rows;
 
 function formatTransaction(row) {
-    const { barang_kode, barang_nama, barang_stok, barang_keterangan, barang_created_at, barang_updated_at, ...transaction } = row;
+    const {
+        barang_kode,
+        barang_nama,
+        barang_harga,
+        barang_stok,
+        barang_keterangan,
+        barang_created_at,
+        barang_updated_at,
+        ...transaction
+    } = row;
+
     return {
         ...transaction,
         barang: barang_kode ? {

@@ -1,7 +1,13 @@
 import axios from 'axios';
 
+const fallbackBaseURL = (() => {
+    const isLocalhost = typeof window !== 'undefined' && ['localhost', '127.0.0.1'].includes(window.location.hostname);
+    if (isLocalhost) return '/api';
+    return `${window.location.origin}/api`;
+})();
+
 const api = axios.create({
-    baseURL: import.meta.env.VITE_API_URL || (import.meta.env.DEV ? '/api' : 'http://localhost:3000/api'),
+    baseURL: import.meta.env.VITE_API_URL || fallbackBaseURL,
     headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
